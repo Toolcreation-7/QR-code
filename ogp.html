@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OGP画像メーカー（ogp.png 生成）</title>
+  <style>
+    body { font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif; text-align: center; padding: 28px 16px; background: #eceef4; color: #1e293b; }
+    h2 { margin: 0 0 6px; }
+    p { color: #475569; font-size: 14px; margin: 4px 0 18px; }
+    canvas { width: 100%; max-width: 640px; height: auto; border: 1px solid #e2e6f0; border-radius: 12px; box-shadow: 0 6px 20px rgba(30,41,59,.08); background:#fff; }
+    button { margin-top: 18px; padding: 13px 26px; font-size: 16px; font-weight: 700; font-family: inherit; border: 0; border-radius: 12px; background: linear-gradient(135deg,#4f46e5,#4338ca); color: #fff; cursor: pointer; }
+    button:hover { filter: brightness(1.05); }
+    code { background:#fff; border:1px solid #e2e6f0; border-radius:6px; padding:2px 6px; }
+  </style>
+</head>
+<body>
+  <h2>OGPカード画像メーカー</h2>
+  <p>「ダウンロード」を押して <code>ogp.png</code> を保存し、このフォルダ（QR-code）に置いてください。<br>SNSでリンクを共有したときのカード画像になります。</p>
+  <canvas id="card" width="1200" height="630"></canvas><br>
+  <button id="dl">ogp.png をダウンロード</button>
+
+  <script src="qrcode.js"></script>
+  <script>
+    var SITE = 'https://toolcreation-7.github.io/QR-code/';
+    var cv = document.getElementById('card');
+    var x = cv.getContext('2d');
+
+    function rr(c, X, Y, w, h, r) {
+      c.beginPath();
+      c.moveTo(X + r, Y);
+      c.arcTo(X + w, Y, X + w, Y + h, r);
+      c.arcTo(X + w, Y + h, X, Y + h, r);
+      c.arcTo(X, Y + h, X, Y, r);
+      c.arcTo(X, Y, X + w, Y, r);
+      c.closePath();
+    }
+
+    function draw() {
+      var W = 1200, H = 630;
+      x.fillStyle = '#4f46e5'; x.fillRect(0, 0, W, H);
+
+      // 右：白い角丸パネル＋QR
+      var panel = 430, px = W - panel - 72, py = (H - panel) / 2;
+      x.fillStyle = '#ffffff'; rr(x, px, py, panel, panel, 44); x.fill();
+      if (typeof qrcode !== 'undefined') {
+        var qr = qrcode(0, 'M'); qr.addData(SITE, 'Byte'); qr.make();
+        var n = qr.getModuleCount(), pad = 46, cell = Math.floor((panel - pad * 2) / n), qs = n * cell;
+        var ox = Math.round(px + (panel - qs) / 2), oy = Math.round(py + (panel - qs) / 2);
+        x.fillStyle = '#0f1729';
+        for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) x.fillRect(ox + c * cell, oy + r * cell, cell, cell);
+      }
+
+      // 左：テキスト
+      x.fillStyle = '#ffffff';
+      x.font = '800 92px "Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
+      x.fillText('QRコード', 72, 250); x.fillText('メーカー', 72, 355);
+      x.fillStyle = 'rgba(255,255,255,.92)';
+      x.font = '400 33px "Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
+      x.fillText('中央に画像・アイコン・番号を入れて、', 72, 440);
+      x.fillText('ログイン不要でかんたんQR作成', 72, 486);
+      x.fillStyle = 'rgba(255,255,255,.7)';
+      x.font = '500 26px "Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
+      x.fillText('toolcreation-7.github.io/QR-code', 72, 560);
+    }
+
+    function download() {
+      cv.toBlob(function (blob) {
+        var a = document.createElement('a');
+        a.download = 'ogp.png';
+        a.href = URL.createObjectURL(blob);
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }, 'image/png');
+    }
+
+    // フォント読み込み後に描画
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(draw); }
+    setTimeout(draw, 250);
+    document.getElementById('dl').addEventListener('click', download);
+  </script>
+</body>
+</html>
