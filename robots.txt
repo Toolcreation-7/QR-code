@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://toolcreation-7.github.io/QR-code/sitemap.xml
+Sitemap: https://qr-code-2jna.vercel.app/sitemap.xml
